@@ -1,5 +1,5 @@
 use cargo_test_macro::cargo_test;
-use cargo_test_support::{main_file, project, Execs, Project};
+use cargo_test_support::{Execs, Project, main_file, project};
 
 mod common;
 

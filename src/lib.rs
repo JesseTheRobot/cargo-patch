@@ -55,23 +55,23 @@
 #![deny(clippy::all, clippy::nursery)]
 #![deny(nonstandard_style, rust_2018_idioms)]
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use cargo::{
+    GlobalContext,
     core::{
+        PackageId, Resolve, Workspace,
         package::{Package, PackageSet},
         registry::PackageRegistry,
-        resolver::{features::CliFeatures, HasDevUnits},
+        resolver::{HasDevUnits, features::CliFeatures},
         shell::Verbosity,
-        PackageId, Resolve, Workspace,
     },
     ops::{get_resolved_packages, load_pkg_lockfile, resolve_with_previous},
     util::important_paths::find_root_manifest_for_wd,
-    GlobalContext,
 };
 
 use cargo::sources::SourceConfigMap;
 use cargo::util::cache_lock::CacheLockMode::DownloadExclusive;
-use fs_extra::dir::{copy, CopyOptions};
+use fs_extra::dir::{CopyOptions, copy};
 use patch::{Line, Patch};
 use semver::VersionReq;
 use std::fmt::{Display, Formatter};
@@ -277,12 +277,14 @@ fn get_id(
         if dep.name().as_str() == name
             && version
                 .as_ref()
-                .map_or(true, |ver| ver.matches(dep.version()))
+                .is_none_or(|ver| ver.matches(dep.version()))
         {
             if matched_dep.is_none() {
                 matched_dep = Some(dep);
             } else {
-                eprintln!("There are multiple versions of {name} available. Try specifying a version.");
+                eprintln!(
+                    "There are multiple versions of {name} available. Try specifying a version."
+                );
             }
         }
     }
